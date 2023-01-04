@@ -1,4 +1,12 @@
 #!/bin/bash
+# These are the basic paths, mine also includes my own scripts path.
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/snap/bin:/snap/bin
+
+# Note: LANG allows grep regexes to work properly in called scripts.
+export LANG=en_GB.UTF-8
+#export DISPLAY=:0
+
+
 OPERATOR=$1
 TARGET_USER=$2
 DATA="/home/$OPERATOR/.parental-controls/data/$TARGET_USER"
@@ -6,9 +14,12 @@ DT=$(date '+%Y-%m-%d %H:%M:%S')
 DAY=$(date '+%Y/%m/%d')
 TIME=$(date '+%H:%M:%S')
 CURRENT_DIR="$DATA/$DAY"
-echo $DT
-echo $DAY
-echo $TIME
+echo "   OPERATOR : $DT "
+echo "TARGET_USER : $DT "
+echo "         DT : $DT "
+echo "        DAY : $DAY "
+echo "       TIME : $TIME "
+
 
 if [ ! -d $CURRENT_DIR ]
 then

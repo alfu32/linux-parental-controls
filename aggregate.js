@@ -1,20 +1,28 @@
 const fs=require('fs');
-const parseArgs=require('./lib/paresargs');
 const {dateToString,stringToDate}=require('./lib/datefmt');
 
-const args = process.argv.slice(2)
-console.log({args})
-console.log("".padStart)
-const parsedArgs=parseArgs(args)
+module.exports={
+    config,
+    extractData,
+    aggregate,
+}
 function config(args){
-    const {targetUser,operatorUser}=args
-    const timestamp=new Date()
+    const {targetUser,operatorUser,refDate}=args;
+    console.log({targetUser,operatorUser,refDate})
+    const timestamp=refDate?new Date(refDate):new Date();
     const baseDataDir=`/home/${operatorUser}/.parental-controls/data/${targetUser}`
     const currentDateFolder = dateToString("Y/m/d",timestamp)
     const currentDate = dateToString("Y-m-d",timestamp)
     const currentTime = dateToString("H:M",timestamp)
     const currentTimeSeconds = dateToString("H:M:S",timestamp)
     const currentDataDir=`${baseDataDir}/${currentDateFolder}`
+    const traceJsonFilename = `${currentDataDir}/psaux.trace.json`
+    const aggJsonFilename = `${currentDataDir}/psaux.agg.json`
+    const rawJsonFilename = `${currentDataDir}/psaux.raw.json`
+    const opsJsonFilename = `${currentDataDir}/psaux.ops.json`
+    if(!fs.existsSync(currentDataDir)){
+        fs.mkdirSync(currentDataDir)
+    }
     return {
         targetUser,
         timestamp,
@@ -24,6 +32,10 @@ function config(args){
         currentDate,
         currentTime,
         currentDataDir,
+        traceJsonFilename,
+        aggJsonFilename,
+        rawJsonFilename,
+        opsJsonFilename,
     }
 
 }
@@ -31,7 +43,6 @@ async function extractData({
         targetUser,
         timestamp,
         operatorUser,
-        baseDataDir,
         currentDateFolder,
         currentDate,
         currentTime,
@@ -77,33 +88,45 @@ async function extractData({
     )
     return {targetUser,operatorUser,currentDate,currentTime,currentDateFolder,currentDataDir,timestamp,contents}
 }
-
-extractData(config(parsedArgs))
-.then(result => {
-    console.log({result})
-    console.log(result.contents)
-    fs.writeFileSync(`${result.currentDataDir}/psaux.raw.json`,JSON.stringify(result.contents,null," "))
-    const aggregated = result.contents.reduce( (agg,ps,ord) => {
-        if(ps === null){
-            return agg;
-        }
-        agg[ps.command]=agg[ps.command]||[]
-        agg[ps.command].push({...ps,command:undefined})
-        return agg;
-    },{})
-    fs.writeFileSync(`${result.currentDataDir}/psaux.agg.json`,JSON.stringify(aggregated,null," "))
-    const traceGraph=Object.keys(aggregated)
-        .reduce( (graph,command) => {
-            const currentGraph=aggregated[command]
-            graph[command]={
-                start:currentGraph[0].date,
-                end:currentGraph[currentGraph.length-1].date,
-                timestamp:dateToString("Y-m-d H:M:S",result.timestamp),
-                "powerUsage[k%.s]":currentGraph.map(p => (parseFloat(p.cpu)*100+0.05)*60)
-                .reduce( (s,v) => s+v*60)/1000
+async function aggregate(parsedArgs){
+    const cfg = config(parsedArgs);
+    const {
+        traceJsonFilename,
+        aggJsonFilename,
+        rawJsonFilename,
+    } = cfg;
+    extractData(cfg)
+    .then(result => {
+        console.log({result})
+        console.log(result.contents)
+        fs.writeFileSync(rawJsonFilename,JSON.stringify(result.contents,null," "))
+        const aggregated = result.contents.reduce( (agg,ps,ord) => {
+            if(ps === null){
+                return agg;
             }
-            return graph
+            agg[ps.command]=agg[ps.command]||[]
+            agg[ps.command].push({...ps,command:undefined})
+            return agg;
         },{})
-    fs.writeFileSync(`${result.currentDataDir}/psaux.trace.json`,JSON.stringify(traceGraph,null," "))
-})
-.catch(err => console.warn({err}))
+        fs.writeFileSync(aggJsonFilename,JSON.stringify(aggregated,null," "))
+        const traceGraph=Object.keys(aggregated)
+            .reduce( (graph,command) => {
+                const currentGraph=aggregated[command];
+                const startTime=new Date(currentGraph[0].date)
+                const endTime=new Date(currentGraph[currentGraph.length-1].date)
+                const totalOn=currentGraph.length*60
+                graph[command]={
+                    pid:currentGraph[0].pid,
+                    startTime,
+                    endTime,
+                    timestamp:dateToString("Y-m-d H:M:S",result.timestamp),
+                    totalOn,
+                    "powerUsage[k%.s]":currentGraph.map(p => (parseFloat(p.cpu)*100+0.05)*60)
+                    .reduce( (s,v) => s+v*60)/1000
+                }
+                return graph
+            },{})
+        fs.writeFileSync(traceJsonFilename,JSON.stringify(traceGraph,null," "))
+    })
+    .catch(err => console.warn({err}))
+}
