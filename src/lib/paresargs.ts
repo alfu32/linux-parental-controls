@@ -1,8 +1,10 @@
-function parseArgs(processArgv){
+
+import {AppParams,DecodedArguments} from './AppParams'
+export function parseArgs(processArgv:string[]):DecodedArguments{
     // const groupedSingleLetterOptions=/^(-)(\w+)/gi
-    const singleLetterOption=/^(-)(\w)(.*?)/gi
-    const option=/^(--)([a-z-]{2,})("*.+?"*)/gi
-    const result={}
+    const singleLetterOption:RegExp=/^(-)(\w)(.*?)/gi
+    const option:RegExp=/^(--)([a-z-]{2,})("*.+?"*)/gi
+    const result:DecodedArguments={}
     let lastOption=""
     processArgv.forEach(item => {
         const matches = {
@@ -28,7 +30,7 @@ function parseArgs(processArgv){
     return result
 }
 
-function testParseArgs(args){
+export function testParseArgs(args:string[]){
     return parseArgs(args.concat([
         "-d",
         "-t1234",
@@ -42,6 +44,3 @@ function testParseArgs(args){
         "localhost",
     ]))
 }
-parseArgs.test=testParseArgs;
-
-module.exports=parseArgs

@@ -1,15 +1,10 @@
-module.exports={
-    dateToString,
-    stringToDate,
-}
 
-
-function dateToString(formatString,date){
+export function dateToString(formatString:string,date:Date):string{
     const cd = date || new Date();
     const fmt = formatString || "Y-m-d H:M:S";
 
     return fmt
-        .replace("Y",cd.getFullYear())
+        .replace("Y",cd.getFullYear()+"")
         .replace("m",(cd.getMonth()+1).toString(10).padStart(2,"0") )
         .replace("d",cd.getDate().toString(10).padStart(2,"0") )
         .replace("H",cd.getHours().toString(10).padStart(2,"0") )
@@ -20,7 +15,7 @@ function dateToString(formatString,date){
         .replace("FFF",cd.getMilliseconds().toString(10).padStart(3,"0") )
 }
 
-function stringToDate(formatString,dateString){
+export function stringToDate(formatString:string,dateString:string):Date{
     const regexString = 
     formatString
         .replace("Y","(?<year>\\d\\d\\d\\d)")
