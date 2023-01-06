@@ -1,4 +1,15 @@
 # Linux Parental Controls
+_work in progress_
+## Objective
+    - provide a backend that allows the OPERATOR_USER to limit the ability of the TARGET_USER to execute applications
+    for more time than the alloted value or outside the permitted hours
+    - provide a statistic of application usage
+    
+This scenario is similar with Family link from the configuration points. 
+**similar projects**:
+ - timekeepr-next (downside that it doesn't seem to be configurable remotely)
+
+
 ## Requirements
     - ssh
     - nodejs
@@ -29,7 +40,7 @@
  ```bash
  npm run test:apply-rules
  ```
- 
+
 ### Installation scenarios
 #### Target Machine only
 #### Dual Target and Operator machines
