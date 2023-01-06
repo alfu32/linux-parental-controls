@@ -14,6 +14,22 @@
     &1>/home/<OPERATOR_USERNAME>/.parental-controls/log2 \
     &2>/home/<OPERATOR_USERNAME>/.parental-controls/err
  ```
+ compile nodejs scripts:
+ ```bash
+ npm install
+ npx tsc
+ ```
+
+ run aggregator (aggregates the ps log data):
+ ```bash
+ npm run test:aggregate
+ ```
+
+ apply rules (generates a operation list based on the previous step):
+ ```bash
+ npm run test:apply-rules
+ ```
+ 
 ### Installation scenarios
 #### Target Machine only
 #### Dual Target and Operator machines
