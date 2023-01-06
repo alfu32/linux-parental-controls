@@ -5,7 +5,7 @@ _work in progress_
     for more time than the alloted value or outside the permitted hours
     - provide a statistic of application usage
     
-This scenario is similar with Family link from the configuration points. 
+Is aimed to be similar with Family Link from the point of view of functionality . 
 
 
 **similar projects**:
